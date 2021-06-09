@@ -13,7 +13,7 @@ module RubyNext
 
       MSG
 
-      class Base < ::Parser::TreeRewriter
+      class Base < Abstract
         class LocalsTracker
           attr_reader :stacks
 
@@ -53,39 +53,15 @@ module RubyNext
           end
         end
 
-        class << self
-          # Returns true if the syntax is supported
-          # by the current Ruby (performs syntax check, not version check)
-          def unsupported_syntax?
-            save_verbose, $VERBOSE = $VERBOSE, nil
-            eval_mid = Kernel.respond_to?(:eval_without_ruby_next) ? :eval_without_ruby_next : :eval
-            Kernel.send eval_mid, self::SYNTAX_PROBE, nil, __FILE__, __LINE__
-            false
-          rescue SyntaxError, StandardError
-            true
-          ensure
-            $VERBOSE = save_verbose
-          end
-
-          # Returns true if the syntax is supported
-          # by the specified version
-          def unsupported_version?(version)
-            self::MIN_SUPPORTED_VERSION > version
-          end
-
-          private
-
-          def transform(source)
-            Language.transform(source, rewriters: [self], using: false)
-          end
-        end
-
         attr_reader :locals
 
-        def initialize(context)
-          @context = context
+        def self.ast?
+          true
+        end
+
+        def initialize(*args)
           @locals = LocalsTracker.new
-          super()
+          super
         end
 
         def s(type, *children)
@@ -133,8 +109,6 @@ module RubyNext
 
           Unparser.unparse(ast).chomp
         end
-
-        attr_reader :context
       end
     end
   end
