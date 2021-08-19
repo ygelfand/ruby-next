@@ -6,8 +6,9 @@
 version = RubyNext.next_ruby_version
 next_dirname = File.join(__dir__, "..", ".rbnext")
 lib_path = File.realpath(File.join(__dir__, ".."))
-current_index = $LOAD_PATH.index(lib_path)
-
+current_index = $LOAD_PATH.index do |load_path|
+  Pathname.new(load_path).realpath.to_s == lib_path
+end
 loop do
   break unless version
 
